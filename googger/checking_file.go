@@ -1,4 +1,4 @@
-package utils
+package googger
 
 import (
 	"fmt"
@@ -31,7 +31,9 @@ func CheckingFileExistence(logPath, filename string) (*os.File, error) {
 		if err != nil {
 			if os.IsNotExist(err) {
 				file, err = os.OpenFile(logPath+logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-				writeLogHeader(file, filename)
+				if err == nil {
+					writeLogHeader(file, filename)
+				}
 			}
 		}
 	}

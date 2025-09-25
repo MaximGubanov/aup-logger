@@ -3,7 +3,6 @@ package googger
 import (
 	"context"
 	"fmt"
-	"googger/pkg/utils"
 	"log/slog"
 	"os"
 )
@@ -49,7 +48,7 @@ func (m *MultiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 }
 
 func SetupLogger(logPath, moduleName string, isDebug bool) *CustomLogger {
-	logFile, err := utils.CheckingFileExistence(logPath, moduleName)
+	logFile, err := CheckingFileExistence(logPath, moduleName)
 	if err != nil {
 		fmt.Printf("Ошибка настройки логгера: %s", err.Error())
 	}

@@ -6,23 +6,21 @@ import (
 	"log/slog"
 	"os"
 	"sync"
-	//"sync"
 )
 
 type CustomLogger struct {
-	logger *slog.Logger
-	file   *os.File
-	mu     sync.Mutex
-	//logChan   chan logEntry
-	//closeChan chan struct{}
-	//wg        sync.WaitGroup
+	logger    *slog.Logger
+	file      *os.File
+	logChan   chan logEntry
+	closeChan chan struct{}
+	wg        sync.WaitGroup
 }
 
-//type logEntry struct {
-//	level string
-//	msg   string
-//	args  []any
-//}
+type logEntry struct {
+	level string
+	msg   string
+	args  []any
+}
 
 type MultiHandler struct {
 	handlers []slog.Handler
@@ -77,95 +75,78 @@ func SetupLogger(logPath, moduleName string, isDebug bool) (*CustomLogger, error
 	multiHandler := NewMultiHandler(consoleHandler, fileHandler)
 
 	logger := &CustomLogger{
-		logger: slog.New(multiHandler),
-		file:   file,
-		mu:     sync.Mutex{},
-		//logChan:   make(chan logEntry),
-		//closeChan: make(chan struct{}),
+		logger:    slog.New(multiHandler),
+		file:      file,
+		logChan:   make(chan logEntry),
+		closeChan: make(chan struct{}),
 	}
 
-	//logger.wg.Add(1)
-	//go logger.processLog()
+	logger.wg.Add(1)
+	go logger.processLog()
 
 	return logger, nil
 }
 
-//func (l *CustomLogger) processLog() {
-//	defer l.wg.Done()
-//
-//	for {
-//		select {
-//		case entry := <-l.logChan:
-//			switch entry.level {
-//			case "debug":
-//				l.logger.Debug(entry.msg, entry.args...)
-//			case "info":
-//				l.logger.Info(entry.msg, entry.args...)
-//			case "warn":
-//				l.logger.Warn(entry.msg, entry.args...)
-//			case "error":
-//				l.logger.Error(entry.msg, entry.args...)
-//			case "fatal":
-//				l.logger.Error(entry.msg, entry.args...)
-//				close(l.closeChan)
-//			}
-//		case <-l.closeChan:
-//			for {
-//				select {
-//				case entry := <-l.logChan:
-//					switch entry.level {
-//					case "info":
-//						l.logger.Info(entry.msg, entry.args...)
-//					case "error":
-//						l.logger.Error(entry.msg, entry.args...)
-//					}
-//				default:
-//					return
-//				}
-//			}
-//		}
-//	}
-//}
+func (l *CustomLogger) processLog() {
+	defer l.wg.Done()
+
+	for {
+		select {
+		case entry := <-l.logChan:
+			switch entry.level {
+			case "debug":
+				l.logger.Debug(entry.msg, entry.args...)
+			case "info":
+				l.logger.Info(entry.msg, entry.args...)
+			case "warn":
+				l.logger.Warn(entry.msg, entry.args...)
+			case "error":
+				l.logger.Error(entry.msg, entry.args...)
+			case "fatal":
+				l.logger.Error(entry.msg, entry.args...)
+				close(l.closeChan)
+			}
+		case <-l.closeChan:
+			for {
+				select {
+				case entry := <-l.logChan:
+					switch entry.level {
+					case "info":
+						l.logger.Info(entry.msg, entry.args...)
+					case "error":
+						l.logger.Error(entry.msg, entry.args...)
+					}
+				default:
+					return
+				}
+			}
+		}
+	}
+}
 
 func (l *CustomLogger) Debug(msg string, args ...any) {
-	//l.logChan <- logEntry{level: "debug", msg: msg, args: args}
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.logger.Debug(msg, args...)
+	l.logChan <- logEntry{level: "debug", msg: msg, args: args}
 }
 
 func (l *CustomLogger) Info(msg string, args ...any) {
-	//l.logChan <- logEntry{level: "info", msg: msg, args: args}
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.logger.Info(msg, args...)
+	l.logChan <- logEntry{level: "info", msg: msg, args: args}
 }
 
 func (l *CustomLogger) Warn(msg string, args ...any) {
-	//l.logChan <- logEntry{level: "warn", msg: msg, args: args}
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.logger.Warn(msg, args...)
+	l.logChan <- logEntry{level: "warn", msg: msg, args: args}
 }
 
 func (l *CustomLogger) Error(msg string, args ...any) {
-	//l.logChan <- logEntry{level: "error", msg: msg, args: args}
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.logger.Error(msg, args...)
+	l.logChan <- logEntry{level: "error", msg: msg, args: args}
 }
 
 func (l *CustomLogger) Fatal(msg string, args ...any) {
-	//l.logChan <- logEntry{level: "fatal", msg: msg, args: args}
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.logger.Error(msg, args...)
-	os.Exit(1)
+	l.logChan <- logEntry{level: "fatal", msg: msg, args: args}
 }
 
 func (l *CustomLogger) Close() error {
-	//close(l.closeChan)
-	//l.wg.Wait()
+	close(l.closeChan)
+	l.wg.Wait()
 
 	return l.file.Close()
 }

@@ -79,7 +79,7 @@ func getLastDailyFile(path, filename string) (string, error) {
 	}
 
 	if len(files) == 0 {
-		return fmt.Sprintf(filename+"_%s.log", time.Now().Format("02_01_2006")), nil
+		return fmt.Sprintf(filepath.Join(path, filename)+"_%s.log", time.Now().Format("02_01_2006")), nil
 	}
 
 	sort.Strings(files)

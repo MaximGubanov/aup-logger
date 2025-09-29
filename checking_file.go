@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"time" 
+	"time"
 )
 
 func CheckingFileExistence(logPath, filename string) (*os.File, error) {
@@ -54,7 +54,7 @@ func writeLogHeader(file *os.File, appName string) {
 
 func findAllDailyFiles(path, filename string) ([]string, error) {
 	currentDate := time.Now().Format("02_01_2006")
-	prefix := path + filename + "_" + currentDate + "*"
+	prefix := filepath.Join(path, filename+"_"+currentDate+"*", "/")
 	files, err := filepath.Glob(prefix)
 	if err != nil {
 		return nil, err

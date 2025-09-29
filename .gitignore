@@ -1,0 +1,19 @@
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Игнорируем бинарники
+**/bin/
+
+# Логи
+*.log
+
+# Кэш Go
+/.go/
+/go.sum
+**/go.sum
+
+# Игнорируем папку protos
+/protos

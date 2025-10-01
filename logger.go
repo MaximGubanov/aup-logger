@@ -1,4 +1,4 @@
-package googger
+package aup_logger
 
 import (
 	"context"

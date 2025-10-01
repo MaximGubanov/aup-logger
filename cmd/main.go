@@ -1,11 +1,9 @@
 ﻿package main
 
-import (
-	"github.com/MaximGubanov/googger"
-)
+import "github.com/MaximGubanov/aup-logger"
 
 func main() {
-	log, err := googger.NewLogger("test.log", "test", "D")
+	log, err := aup_logger.NewLogger("test.log", "test", "D")
 	if err != nil {
 		panic(err)
 	}

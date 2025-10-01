@@ -58,20 +58,15 @@ func (m *MultiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return m
 }
 
-func SetupLogger(logPath, moduleName string, isDebug bool) (*CustomLogger, error) {
+func SetupLogger(logPath, moduleName, logLevel string) (*CustomLogger, error) {
 	file, err := CheckingFileExistence(logPath, moduleName)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка настройки логгера: %s", err.Error())
 	}
 
-	level := slog.LevelInfo
-	if isDebug {
-		level = slog.LevelDebug
-	}
-
+	level := getLogLevel(logLevel)
 	consoleHandler := NewCustomHandler(os.Stdout, level, moduleName)
 	fileHandler := NewCustomHandler(file, level, moduleName)
-
 	multiHandler := NewMultiHandler(consoleHandler, fileHandler)
 
 	logger := &CustomLogger{
@@ -85,6 +80,21 @@ func SetupLogger(logPath, moduleName string, isDebug bool) (*CustomLogger, error
 	go logger.processLog()
 
 	return logger, nil
+}
+
+func getLogLevel(level string) slog.Level {
+	switch level {
+	case "D":
+		return slog.LevelDebug
+	case "E":
+		return slog.LevelError
+	case "W":
+		return slog.LevelWarn
+	case "I":
+		return slog.LevelInfo
+	default:
+		return slog.LevelInfo
+	}
 }
 
 func (l *CustomLogger) processLog() {

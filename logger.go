@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"os"
 	"sync"
+
+	"github.com/MaximGubanov/googger/pkg/utils"
 )
 
 type CustomLogger struct {
@@ -22,15 +24,15 @@ type logEntry struct {
 	args  []any
 }
 
-type MultiHandler struct {
+type multiHandler struct {
 	handlers []slog.Handler
 }
 
-func NewMultiHandler(handlers ...slog.Handler) slog.Handler {
-	return &MultiHandler{handlers: handlers}
+func newMultiHandler(handlers ...slog.Handler) *multiHandler {
+	return &multiHandler{handlers: handlers}
 }
 
-func (m *MultiHandler) Enabled(ctx context.Context, level slog.Level) bool {
+func (m *multiHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	for _, h := range m.handlers {
 		if h.Enabled(ctx, level) {
 			return true
@@ -39,7 +41,7 @@ func (m *MultiHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return false
 }
 
-func (m *MultiHandler) Handle(ctx context.Context, r slog.Record) error {
+func (m *multiHandler) Handle(ctx context.Context, r slog.Record) error {
 	for _, h := range m.handlers {
 		if h.Enabled(ctx, r.Level) {
 			if err := h.Handle(ctx, r); err != nil {
@@ -50,24 +52,24 @@ func (m *MultiHandler) Handle(ctx context.Context, r slog.Record) error {
 	return nil
 }
 
-func (m *MultiHandler) WithGroup(name string) slog.Handler {
+func (m *multiHandler) WithGroup(name string) slog.Handler {
 	return m
 }
 
-func (m *MultiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+func (m *multiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return m
 }
 
-func SetupLogger(logPath, moduleName, logLevel string) (*CustomLogger, error) {
-	file, err := CheckingFileExistence(logPath, moduleName)
+func NewLogger(logPath, moduleName, logLevel string) (*CustomLogger, error) {
+	file, err := utils.CheckingFileExistence(logPath, moduleName)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка настройки логгера: %s", err.Error())
 	}
 
 	level := getLogLevel(logLevel)
-	consoleHandler := NewCustomHandler(os.Stdout, level, moduleName)
-	fileHandler := NewCustomHandler(file, level, moduleName)
-	multiHandler := NewMultiHandler(consoleHandler, fileHandler)
+	consoleHandler := newCustomHandler(os.Stdout, level, moduleName)
+	fileHandler := newCustomHandler(file, level, moduleName)
+	multiHandler := newMultiHandler(consoleHandler, fileHandler)
 
 	logger := &CustomLogger{
 		logger:    slog.New(multiHandler),

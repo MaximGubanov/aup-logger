@@ -1,4 +1,4 @@
-package googger
+package utils
 
 import (
 	"fmt"

@@ -12,22 +12,22 @@ const (
 	LevelFatal = slog.Level(12)
 )
 
-type CustomHandler struct {
+type customHandler struct {
 	*slog.Logger
 	writer        io.Writer
 	level         slog.Level
 	nameComponent string
 }
 
-func NewCustomHandler(w io.Writer, level slog.Level, nc string) *CustomHandler {
-	return &CustomHandler{writer: w, level: level, nameComponent: nc}
+func newCustomHandler(w io.Writer, level slog.Level, nc string) *customHandler {
+	return &customHandler{writer: w, level: level, nameComponent: nc}
 }
 
-func (h *CustomHandler) Enabled(ctx context.Context, level slog.Level) bool {
+func (h *customHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return level >= h.level
 }
 
-func (h *CustomHandler) Handle(ctx context.Context, r slog.Record) error {
+func (h *customHandler) Handle(ctx context.Context, r slog.Record) error {
 	timeFormat := r.Time.Format("02.01.2006 15:04:05")
 	levelStr := h.formatLevel(r.Level)
 	timeParts := strings.Split(timeFormat, " ")
@@ -47,15 +47,15 @@ func (h *CustomHandler) Handle(ctx context.Context, r slog.Record) error {
 	return err
 }
 
-func (h *CustomHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+func (h *customHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return h
 }
 
-func (h *CustomHandler) WithGroup(name string) slog.Handler {
+func (h *customHandler) WithGroup(name string) slog.Handler {
 	return h
 }
 
-func (h *CustomHandler) formatLevel(level slog.Level) string {
+func (h *customHandler) formatLevel(level slog.Level) string {
 	switch level {
 	case slog.LevelDebug:
 		return "D"

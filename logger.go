@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/MaximGubanov/googger/pkg/utils"
+	"github.com/MaximGubanov/aup-logger/pkg/utils"
 )
 
 type CustomLogger struct {

@@ -9,7 +9,7 @@ import (
 )
 
 func CheckingFileExistence(logPath, filename string) (*os.File, error) {
-	if err := os.MkdirAll(logPath, 0755); err != nil {
+	if err := os.MkdirAll(logPath, 0777); err != nil {
 		return nil, fmt.Errorf("ошибка создания Log-директории: %v", err)
 	}
 
@@ -22,15 +22,15 @@ func CheckingFileExistence(logPath, filename string) (*os.File, error) {
 
 	if isMoreThan100MB(logFileName) {
 		logFileName = fmt.Sprintf("%s_%d.log", logPath+filename+"_"+time.Now().Format("02_01_2006"), getNextFileNum(logPath, filename))
-		file, err = os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		file, err = os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0777)
 		if err == nil {
 			writeLogHeader(file, filename)
 		}
 	} else {
-		file, err = os.OpenFile(logFileName, os.O_WRONLY|os.O_APPEND, 0666)
+		file, err = os.OpenFile(logFileName, os.O_WRONLY|os.O_APPEND, 0777)
 		if err != nil {
 			if os.IsNotExist(err) {
-				file, err = os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+				file, err = os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0777)
 				if err == nil {
 					writeLogHeader(file, filename)
 				}

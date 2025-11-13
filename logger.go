@@ -3,7 +3,6 @@ package aup_logger
 import (
 	"context"
 	"fmt"
-	"io"
 	"log/slog"
 	"os"
 	"sync"
@@ -23,10 +22,6 @@ type logEntry struct {
 	level string
 	msg   string
 	args  []any
-}
-
-type flushWriter struct {
-	io.Writer
 }
 
 type multiHandler struct {
@@ -65,19 +60,6 @@ func (m *multiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return m
 }
 
-func (fw *flushWriter) Write(p []byte) (n int, err error) {
-	n, err = fw.Writer.Write(p)
-	if err != nil {
-		return n, err
-	}
-
-	if file, ok := fw.Writer.(*os.File); ok {
-		file.Sync()
-	}
-
-	return n, nil
-}
-
 func NewLogger(logPath, moduleName, logLevel string) (*CustomLogger, error) {
 	file, err := utils.CheckingFileExistence(logPath, moduleName)
 	if err != nil {
@@ -86,9 +68,7 @@ func NewLogger(logPath, moduleName, logLevel string) (*CustomLogger, error) {
 
 	level := getLogLevel(logLevel)
 	consoleHandler := newCustomHandler(os.Stdout, level, moduleName)
-	fileHandler := newCustomHandler(&flushWriter{
-		Writer: file,
-	}, level, moduleName)
+	fileHandler := newCustomHandler(file, level, moduleName)
 	multiHandler := newMultiHandler(consoleHandler, fileHandler)
 
 	logger := &CustomLogger{
